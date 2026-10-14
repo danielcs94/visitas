@@ -24,9 +24,11 @@ async function get(config, path, params = {}) {
     const r = await fetch(url, { headers: { Authorization: `Bearer ${config.token}`, 'Content-Type': 'application/json' } });
     if (r.ok) return r.json();
     if (r.status === 401 || r.status === 403) {
-      throw new Error('GoatCounter no acepta el token. Revisa que esté bien copiado y que tenga permiso para leer estadísticas.');
+      throw new Error(`GoatCounter no acepta el token (HTTP ${r.status}). Comprueba que esté copiado entero y con el permiso «Read statistics». Si lo acabas de crear, espera un minuto y pulsa ↻.`);
     }
-    if (r.status === 404) throw new Error(`No existe el sitio «${config.site}» en GoatCounter. Revisa el código del sitio.`);
+    if (r.status === 404) {
+      throw new Error(`GoatCounter no encuentra los datos (HTTP 404). Revisa el código del sitio («${config.site}»). Si el token es nuevo, espera un minuto y pulsa ↻.`);
+    }
     if (r.status === 429) { await sleep(1000 * (attempt + 1)); continue; } // límite de peticiones
     throw new Error(`GoatCounter respondió con un error (HTTP ${r.status}).`);
   }
@@ -39,8 +41,9 @@ const iso = (d) => `${d.toISOString().slice(0, 13)}:00:00Z`;
 export function rangeFor(days) {
   const end = new Date();
   end.setUTCHours(end.getUTCHours() + 1, 0, 0, 0);       // hasta el final de la hora actual
-  const start = new Date(end);
-  start.setUTCDate(start.getUTCDate() - days);
+  // Desde el inicio del día de hace (days - 1) días: "Hoy" es solo hoy y "7 días" son 7 días
+  const start = new Date();
+  start.setUTCDate(start.getUTCDate() - (days - 1));
   start.setUTCHours(0, 0, 0, 0);
   return { start: iso(start), end: iso(end), days };
 }

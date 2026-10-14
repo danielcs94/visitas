@@ -63,6 +63,26 @@ function distanceBucket(p) {
   return km > 21 ? BUCKETS[2] : km > 10 ? BUCKETS[1] : BUCKETS[0];
 }
 
+// Nombres legibles para las listas: GoatCounter da los tamaños solo como id y los países en inglés
+const SIZE_NAMES = { phone: 'Teléfono', tablet: 'Tablet', desktop: 'Ordenador', desktophd: 'Ordenador grande', unknown: 'Desconocido' };
+const regionNames = (() => { try { return new Intl.DisplayNames(['es'], { type: 'region' }); } catch { return null; } })();
+function tidyLists(lists) {
+  const clean = (items, nameOf) => (items ?? [])
+    .filter((x) => x.count > 0)
+    .map((x) => ({ ...x, name: nameOf(x) || x.name || '(desconocido)' }));
+  return {
+    ...lists,
+    sizes: clean(lists.sizes, (x) => SIZE_NAMES[x.id]),
+    locations: clean(lists.locations, (x) => {
+      try { return /^[A-Z]{2}$/.test(x.id) ? regionNames?.of(x.id) : null; } catch { return null; }
+    }),
+    browsers: clean(lists.browsers, () => null),
+    systems: clean(lists.systems, () => null),
+    toprefs: clean(lists.toprefs, () => null),
+    languages: clean(lists.languages, () => null),
+  };
+}
+
 export function buildModel(raw) {
   const hits = raw.hits.map((h) => ({ ...h, project: projectOf(h) }));
   const pages = hits.filter((h) => !h.event);
@@ -112,7 +132,7 @@ export function buildModel(raw) {
       visitors,
       generated,
       appClicks,
-      countries: raw.lists.locations?.length ?? 0,
+      countries: (raw.lists.locations ?? []).filter((x) => x.count > 0).length,
     },
     funnel: [
       { label: 'Visitas al portfolio', value: portfolio },
@@ -126,6 +146,6 @@ export function buildModel(raw) {
     intensities: choice(/^(ab-)?intensidad-/, (p) => ({ 'intensidad-suave': 'Suave', 'intensidad-medio': 'Medio', 'intensidad-avanzado': 'Avanzado' })[p] ?? p),
     distances: choice(/^(ab-)?distancia-/, distanceBucket).sort((a, b) => BUCKETS.indexOf(a.name) - BUCKETS.indexOf(b.name)),
     errors: events.filter((e) => /error-al-generar/.test(e.path) && e.count > 0),
-    lists: raw.lists,
+    lists: tidyLists(raw.lists),
   };
 }
