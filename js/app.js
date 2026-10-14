@@ -1,5 +1,5 @@
 // Panel de visitas: periodo, carga de datos (o ejemplo), render y ajustes del token.
-import { getConfig, saveConfig, rangeFor, loadStats } from './api.js';
+import { getConfig, saveConfig, rangeFor, loadStats, clearCache } from './api.js';
 import { buildModel, PROJECTS, eventLabel } from './model.js';
 import { sampleStats } from './sample.js';
 import { stackedBars, sparkline, barList, funnel } from './charts.js';
@@ -42,12 +42,18 @@ $('periods').addEventListener('click', (e) => {
   renderPeriods();
   refresh();
 });
-$('refresh').addEventListener('click', () => refresh());
+$('refresh').addEventListener('click', () => refresh({ fresh: true }));
 
 // ---------------------------------------------------------------------------
 // Carga
 // ---------------------------------------------------------------------------
-async function refresh() {
+// Solo se pinta la última carga pedida: si cambias de periodo mientras otro carga, el
+// anterior se cancela y nunca pisa al que estás viendo.
+let current = null;
+async function refresh({ fresh = false } = {}) {
+  current?.abort();
+  const controller = new AbortController();
+  current = controller;
   const config = getConfig();
   const range = rangeFor(prefs.days);
   const demo = !config.token;
@@ -56,18 +62,20 @@ async function refresh() {
   $('refresh').disabled = true;
   $('status').textContent = 'Cargando…';
   try {
-    const raw = demo ? sampleStats(range) : await loadStats(config, range);
+    const raw = demo ? sampleStats(range) : await loadStats(config, range, { signal: controller.signal, fresh });
+    if (controller !== current) return;
     model = buildModel(raw);
     render(model);
     const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
     $('status').textContent = demo ? 'Datos de ejemplo' : `Actualizado a las ${time}`;
   } catch (err) {
+    if (controller !== current) return; // carga cancelada al cambiar de periodo
     console.error(err);
     $('error').textContent = err.message || 'No se pudieron cargar las estadísticas.';
     $('error').hidden = false;
     $('status').textContent = '';
   } finally {
-    $('refresh').disabled = false;
+    if (controller === current) $('refresh').disabled = false;
   }
 }
 
@@ -148,12 +156,14 @@ $('demo-connect').addEventListener('click', openSettings);
 $('site').addEventListener('input', () => { $('token-link').href = `https://${$('site').value.trim() || 'danielcs'}.goatcounter.com/user/api`; });
 $('token-remove').addEventListener('click', () => {
   saveConfig({ ...getConfig(), token: '' });
+  clearCache();
   settings.close();
   refresh();
 });
 settings.addEventListener('close', () => {
   if (settings.returnValue !== 'save') return;
   saveConfig({ site: $('site').value.trim() || 'danielcs', token: $('token').value.trim() });
+  clearCache();
   refresh();
 });
 
