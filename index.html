@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de visitas</title>
+  <meta name="description" content="Panel personal con las visitas de mis proyectos, a partir de GoatCounter.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23111110'/><rect x='7' y='16' width='4' height='9' rx='1.5' fill='%233987e5'/><rect x='14' y='10' width='4' height='15' rx='1.5' fill='%23d95926'/><rect x='21' y='6' width='4' height='19' rx='1.5' fill='%23199e70'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css?v=202610140205">
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div>
+        <p class="eyebrow">GoatCounter · danielcs</p>
+        <h1>Panel de visitas</h1>
+      </div>
+      <div class="top-actions">
+        <span class="status" id="status" aria-live="polite"></span>
+        <button class="icon-btn" id="refresh" type="button" title="Actualizar" aria-label="Actualizar">↻</button>
+        <button class="icon-btn" id="settings-open" type="button" title="Token de GoatCounter" aria-label="Token de GoatCounter">⚙</button>
+        <button class="icon-btn" id="theme-toggle" type="button" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">◐</button>
+      </div>
+    </header>
+
+    <div class="periods" id="periods" role="group" aria-label="Periodo"></div>
+
+    <div class="demo-banner" id="demo-banner" hidden>
+      <p><b>Estás viendo datos de ejemplo.</b> Conecta tu token de GoatCounter para ver tus visitas reales.</p>
+      <button class="btn-primary" id="demo-connect" type="button">Conectar</button>
+    </div>
+    <p class="error" id="error" role="alert" hidden></p>
+
+    <section class="kpis" id="kpis" aria-label="Cifras clave"></section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 id="chart-title">Visitas por día</h2>
+        <ul class="legend" id="legend"></ul>
+      </div>
+      <div class="chart" id="chart"></div>
+    </section>
+
+    <section class="projects" id="projects" aria-label="Proyectos"></section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Del portfolio a la ruta</h2>
+        <p class="card-note">Cuánta gente llega a cada paso, en % de las visitas al portfolio. Puede pasar del 100 %: hay quien entra a las apps sin pasar por el portfolio.</p>
+      </div>
+      <div id="funnel"></div>
+    </section>
+
+    <section class="grid">
+      <div class="card"><h2>Países</h2><div id="list-locations"></div></div>
+      <div class="card"><h2>Dispositivos</h2><div id="list-sizes"></div></div>
+      <div class="card"><h2>De dónde llegan</h2><div id="list-refs"></div></div>
+      <div class="card"><h2>Navegadores</h2><div id="list-browsers"></div></div>
+      <div class="card"><h2>Sistemas</h2><div id="list-systems"></div></div>
+      <div class="card"><h2>Idiomas</h2><div id="list-languages"></div></div>
+    </section>
+
+    <section class="grid two">
+      <div class="card"><h2>Intensidad elegida</h2><div id="list-intensities"></div></div>
+      <div class="card"><h2>Distancia elegida</h2><div id="list-distances"></div></div>
+    </section>
+
+    <section class="card">
+      <h2>Eventos</h2>
+      <div class="table-wrap" id="events"></div>
+    </section>
+
+    <section class="card card-alert" id="errors-card" hidden>
+      <h2>Errores al generar rutas</h2>
+      <ul class="errors" id="errors"></ul>
+    </section>
+
+    <footer class="foot">Los números son visitantes únicos por página o evento, como los cuenta GoatCounter. Un mismo visitante puede aparecer en varias páginas.</footer>
+  </div>
+
+  <dialog class="sheet" id="settings" aria-labelledby="settings-title">
+    <form method="dialog">
+      <h2 id="settings-title">Conectar GoatCounter</h2>
+      <p>El token se guarda solo en este dispositivo y solo se envía a GoatCounter.</p>
+      <label for="site">Código del sitio</label>
+      <div class="site-field"><input id="site" type="text" autocomplete="off" spellcheck="false"><span>.goatcounter.com</span></div>
+      <label for="token">Token de la API</label>
+      <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu token">
+      <p class="hint">Créalo en <a id="token-link" href="https://danielcs.goatcounter.com/user/api" target="_blank" rel="noopener">GoatCounter → Configuración → API</a>, marcando solo «Read statistics».</p>
+      <div class="sheet-actions">
+        <button class="btn-secondary" type="button" id="token-remove">Quitar token</button>
+        <button class="btn-secondary" value="cancel" formnovalidate>Cancelar</button>
+        <button class="btn-primary" value="save">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="importmap">
+{
+  "imports": {
+    "./js/api.js": "./js/api.js?v=202610140205",
+    "./js/app.js": "./js/app.js?v=202610140205",
+    "./js/charts.js": "./js/charts.js?v=202610140205",
+    "./js/model.js": "./js/model.js?v=202610140205",
+    "./js/sample.js": "./js/sample.js?v=202610140205"
+  }
+}
+  </script>
+  <script type="module" src="js/app.js?v=202610140205"></script>
+</body>
+</html>
