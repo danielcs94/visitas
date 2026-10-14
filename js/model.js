@@ -9,7 +9,7 @@ export const PROJECTS = [
   { key: 'otros', name: 'Otros', color: '--series-4', url: null },
 ];
 
-const NOVICIADO_EVENTS = /^(ruta-generada|distancia-|intensidad-|preferencia-|abrir-google-maps|descargar-gpx|copiar-enlace|error-al-generar)/;
+const NOVICIADO_EVENTS = /^(ruta-generada|distancia-|intensidad-|preferencia-|carrera-|abrir-google-maps|descargar-gpx|copiar-enlace|error-al-generar)/;
 
 export function projectOf(hit) {
   const p = hit.path ?? '';
@@ -38,6 +38,10 @@ const EVENT_LABELS = {
   'preferencia-parques': 'Eligió «Parques»',
   'preferencia-mezcla': 'Eligió «Mezcla»',
   'preferencia-ciudad': 'Eligió «Ciudad»',
+  'carrera-iniciada': 'Empezó una carrera',
+  'carrera-terminada': 'Terminó una carrera',
+  'carrera-gpx': 'Descargó el GPX de su carrera',
+  'carrera-compartir': 'Compartió su carrera',
 };
 const PROJECT_NAMES = {
   'rutas-ab': 'Rutas A→B', 'rutas-noviciado': 'Rutas Noviciado', styleshop: 'StyleShop',
