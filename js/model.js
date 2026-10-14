@@ -35,6 +35,9 @@ const EVENT_LABELS = {
   'tipo-bucle': 'Ruta en bucle',
   'tipo-a-b': 'Ruta de A a B',
   'portfolio-contactar': 'Contactar',
+  'preferencia-parques': 'Eligió «Parques»',
+  'preferencia-mezcla': 'Eligió «Mezcla»',
+  'preferencia-ciudad': 'Eligió «Ciudad»',
 };
 const PROJECT_NAMES = {
   'rutas-ab': 'Rutas A→B', 'rutas-noviciado': 'Rutas Noviciado', styleshop: 'StyleShop',
