@@ -20,9 +20,9 @@ const sleep = (ms, signal) => new Promise((resolve, reject) => {
   signal?.addEventListener('abort', () => { clearTimeout(t); reject(signal.reason); }, { once: true });
 });
 
-// La API admite 4 peticiones por segundo: se dejan 300 ms entre una y otra, aunque se
-// solapen dos cargas, para no recibir rechazos (429) que dejarían listas vacías.
-const GAP_MS = 300;
+// La API admite 4 peticiones por segundo, y el navegador hace dos por cada dato: la de permiso
+// (CORS, por llevar el token) y la de verdad. Se deja 600 ms entre datos para no pasar del límite.
+const GAP_MS = 600;
 let nextSlot = 0;
 async function waitTurn(signal) {
   const now = Date.now();
@@ -36,7 +36,16 @@ async function get(config, path, params = {}, signal) {
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   for (let attempt = 0; attempt < 6; attempt++) {
     await waitTurn(signal);
-    const r = await fetch(url, { signal, headers: { Authorization: `Bearer ${config.token}`, 'Content-Type': 'application/json' } });
+    let r;
+    try {
+      r = await fetch(url, { signal, headers: { Authorization: `Bearer ${config.token}` } });
+    } catch (e) {
+      // Si GoatCounter rechaza la petición de permiso por el límite, el navegador solo dice
+      // "Load failed" / "Failed to fetch": se espera a que se libere el límite y se repite.
+      if (signal?.aborted || attempt === 5) throw signal?.aborted ? e : new Error('No se pudo conectar con GoatCounter. Comprueba la conexión y pulsa ↻.');
+      await sleep(1100 * (attempt + 1), signal);
+      continue;
+    }
     if (r.ok) return r.json();
     if (r.status === 401 || r.status === 403) {
       throw new Error(`GoatCounter no acepta el token (HTTP ${r.status}). Comprueba que esté copiado entero y con el permiso «Read statistics». Si lo acabas de crear, espera un minuto y pulsa ↻.`);
