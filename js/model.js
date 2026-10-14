@@ -9,7 +9,7 @@ export const PROJECTS = [
   { key: 'otros', name: 'Otros', color: '--series-4', url: null },
 ];
 
-const NOVICIADO_EVENTS = /^(ruta-generada|distancia-|intensidad-|abrir-google-maps|descargar-gpx|copiar-enlace|error-al-generar)/;
+const NOVICIADO_EVENTS = /^(ruta-generada|distancia-|intensidad-|preferencia-|abrir-google-maps|descargar-gpx|copiar-enlace|error-al-generar)/;
 
 export function projectOf(hit) {
   const p = hit.path ?? '';
