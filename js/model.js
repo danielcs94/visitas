@@ -42,6 +42,7 @@ const EVENT_LABELS = {
   'carrera-terminada': 'Terminó una carrera',
   'carrera-gpx': 'Descargó el GPX de su carrera',
   'carrera-compartir': 'Compartió su carrera',
+  'carrera-consejos': 'Vio los consejos de Acceso guiado',
 };
 const PROJECT_NAMES = {
   'rutas-ab': 'Rutas A→B', 'rutas-noviciado': 'Rutas Noviciado', styleshop: 'StyleShop',
